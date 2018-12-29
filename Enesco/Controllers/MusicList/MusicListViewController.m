@@ -11,6 +11,7 @@
 #import "MusicListCell.h"
 #import "MusicIndicator.h"
 #import "MBProgressHUD.h"
+#import "PJFFileManager.h"
 
 @interface MusicListViewController () <MusicViewControllerDelegate, MusicListCellDelegate>
 @property (nonatomic, strong) NSMutableArray *musicEntities;
@@ -65,8 +66,22 @@
 # pragma mark - Load data from server
 
 - (void)headerRefreshing {
-    NSDictionary *musicsDict = [self dictionaryWithContentsOfJSONString:@"music_list.json"];
-    self.musicEntities = [MusicEntity arrayOfEntitiesFromArray:musicsDict[@"data"]].mutableCopy;
+    NSString *dir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask,  YES) lastObject];
+    NSArray *files = [PJFFileManager getFilenamelistOfType:@"mp3" fromDirPath:dir];
+    
+    NSMutableArray *arrayOfEntities = [NSMutableArray array];
+    for (NSString *filename in files) {
+        MusicEntity *entity = [[MusicEntity alloc] init];
+        entity.name = [filename stringByDeletingPathExtension];
+        entity.artistName = @"unkown";
+        entity.fileName = [dir stringByAppendingPathComponent:filename];
+        [arrayOfEntities addObject:entity];
+    }
+    
+//    NSDictionary *musicsDict = [self dictionaryWithContentsOfJSONString:@"music_list.json"];
+//    self.musicEntities = [MusicEntity arrayOfEntitiesFromArray:musicsDict[@"data"]].mutableCopy;
+    self.musicEntities = arrayOfEntities;
+    
     [self.tableView reloadData];
 }
 
